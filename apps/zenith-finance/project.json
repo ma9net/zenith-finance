@@ -1,0 +1,84 @@
+{
+  "name": "zenith-finance",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "prefix": "app",
+  "sourceRoot": "apps/zenith-finance/src",
+  "tags": [],
+  "targets": {
+    "build": {
+      "executor": "@angular/build:application",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/apps/zenith-finance",
+        "browser": "apps/zenith-finance/src/main.ts",
+        "tsConfig": "apps/zenith-finance/tsconfig.app.json",
+        "assets": [
+          {
+            "glob": "**/*",
+            "input": "apps/zenith-finance/public"
+          }
+        ],
+        "styles": ["apps/zenith-finance/src/styles.css"],
+        "server": "apps/zenith-finance/src/main.server.ts",
+        "ssr": {
+          "entry": "apps/zenith-finance/src/server.ts"
+        },
+        "outputMode": "server"
+      },
+      "configurations": {
+        "production": {
+          "budgets": [
+            {
+              "type": "initial",
+              "maximumWarning": "500kb",
+              "maximumError": "1mb"
+            },
+            {
+              "type": "anyComponentStyle",
+              "maximumWarning": "4kb",
+              "maximumError": "8kb"
+            }
+          ],
+          "outputHashing": "all"
+        },
+        "development": {
+          "optimization": false,
+          "extractLicenses": false,
+          "sourceMap": true
+        }
+      },
+      "defaultConfiguration": "production"
+    },
+    "serve": {
+      "continuous": true,
+      "executor": "@angular/build:dev-server",
+      "configurations": {
+        "production": {
+          "buildTarget": "zenith-finance:build:production"
+        },
+        "development": {
+          "buildTarget": "zenith-finance:build:development"
+        }
+      },
+      "defaultConfiguration": "development"
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint"
+    },
+    "test": {
+      "executor": "@angular/build:unit-test",
+      "options": {}
+    },
+    "serve-static": {
+      "continuous": true,
+      "executor": "@nx/web:file-server",
+      "options": {
+        "buildTarget": "zenith-finance:build",
+        "port": 4200,
+        "staticFilePath": "dist/apps/zenith-finance/browser",
+        "spa": true
+      }
+    }
+  }
+}

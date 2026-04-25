@@ -1,0 +1,9 @@
+{
+  "name": "zenith-finance-e2e",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "sourceRoot": "apps/zenith-finance-e2e/src",
+  "implicitDependencies": ["zenith-finance"],
+  "// targets": "to see all targets run: nx show project zenith-finance-e2e --web",
+  "targets": {}
+}
