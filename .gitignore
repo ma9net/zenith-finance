@@ -38,6 +38,9 @@ testem.log
 .DS_Store
 Thumbs.db
 
+# nodejs
+/local-node
+
 .nx/cache
 .nx/workspace-data
 .claude/worktrees

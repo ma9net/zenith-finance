@@ -13,7 +13,15 @@
     "lib": ["es2020", "dom"],
     "skipLibCheck": true,
     "skipDefaultLibCheck": true,
-    "paths": {}
+    "paths": {
+      "@zenith-finance/data-access": [
+        "./libs/finance/data-access/src/index.ts"
+      ],
+      "@zenith-finance/ui": ["./libs/shared/ui/src/index.ts"],
+      "@zenith-finance/feature-dashboard": [
+        "./libs/finance/feature-dashboard/src/index.ts"
+      ]
+    }
   },
   "exclude": ["node_modules", "tmp"]
 }
