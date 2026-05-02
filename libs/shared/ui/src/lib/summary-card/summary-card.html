@@ -1,1 +1,23 @@
-<p>summary-card works!</p>
+<div [ngClass]="cardClasses()"
+     class="relative overflow-hidden p-6 rounded-3xl border transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl group">
+
+  <!-- Decorative Background Glow -->
+  <div class="absolute -right-4 -top-4 w-24 h-24 blur-3xl opacity-20 rounded-full bg-current"></div>
+
+  <div class="relative z-10 flex flex-col h-full justify-between">
+    <div class="flex justify-between items-start">
+      <div class="space-y-1">
+        <p class="text-[10px] font-black uppercase tracking-[0.2em] opacity-60">{{ label() }}</p>
+        <h3 class="text-2xl font-black font-mono tracking-tight">{{ value() }}</h3>
+      </div>
+      <div class="p-3 rounded-2xl bg-white/50 shadow-inner text-2xl group-hover:scale-110 transition-transform">
+        {{ icon() }}
+      </div>
+    </div>
+
+    <!-- Progress Indicator (Visual Fluff for UI Quality) -->
+    <div class="mt-4 w-full h-1 bg-black/5 rounded-full overflow-hidden">
+      <div class="h-full bg-current opacity-40 transition-all duration-1000" [style.width]="'65%'"></div>
+    </div>
+  </div>
+</div>
