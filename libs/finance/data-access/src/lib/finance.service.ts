@@ -9,6 +9,7 @@ import {
 import { MathUtils } from './utils/math-utils';
 import { isPlatformBrowser } from '@angular/common';
 import Big from 'big.js';
+import { CsvUtils } from './utils/csv-utils';
 
 export interface Transaction {
   id: string;
@@ -113,5 +114,44 @@ export class FinanceService {
       }));
       this.transactions.set(parsed);
     }
+  }
+
+  /**
+   * Removes a specific entry. Crucial for auditing accuracy.
+   */
+  deleteTransaction(id: string) {
+    this.transactions.update((prev) => prev.filter((t) => t.id !== id));
+  }
+
+  /**
+   * The "Panic Button": Quickly removes the most recent entry.
+   */
+  undoLast() {
+    if (this.transactions().length === 0) return;
+    this.transactions.update((prev) => prev.slice(1));
+  }
+
+  /**
+   * Wipe the entire audit trail (Requires confirmation in UI)
+   */
+  clearAll() {
+    this.transactions.set([]);
+  }
+
+  /**
+   * Exports transaction data to a CSV file named "Zenith_Audit_YYYY-MM-DD.csv"
+   * Includes columns: ID, Date, Category, and Amount in Euros.
+   */
+  exportToCsv() {
+    const data = this.transactions().map((t) => ({
+      ID: t.id,
+      Date: t.date.toISOString(),
+      Category: t.category,
+      Amount_EUR: t.amount,
+    }));
+
+    const csvContent = CsvUtils.convertToCsv(data);
+    const timestamp = new Date().toISOString().split('T')[0];
+    CsvUtils.downloadFile(csvContent, `Zenith_Audit_${timestamp}.csv`);
   }
 }

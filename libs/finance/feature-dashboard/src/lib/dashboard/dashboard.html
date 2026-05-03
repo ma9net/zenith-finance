@@ -1,7 +1,7 @@
 <div class="p-6 max-w-2xl mx-auto space-y-8 bg-slate-50 min-h-screen">
 
   <!-- 1. SUMMARY CARDS (Moved inside) -->
-  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
     <lib-summary-card
       label="Total Balance (Including Tax)"
       [value]="'€' + finance.totalWithTax()"
@@ -31,7 +31,7 @@
     </lib-summary-card>
   </div>
 
-  <!-- 1. HEADER & INPUT CARD -->
+  <!-- 2. HEADER & INPUT CARD -->
   <div class="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden">
     <div class="bg-slate-900 p-4">
       <h2 class="text-xl font-bold text-white flex items-center gap-2">
@@ -76,7 +76,34 @@
     </div>
   </div>
 
-  <!-- 2. SEARCH & AUDIT TRAIL -->
+  <!-- 3. GLOBAL ACTIONS TOOLBAR -->
+  <div class="flex flex-wrap items-center justify-between gap-4 px-2">
+    <div class="flex items-center gap-2">
+      <!-- Undo Button -->
+      <button
+        (click)="finance.undoLast()"
+        [disabled]="finance.filteredHistory().length === 0"
+        class="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm">
+        <span>↩️</span> Undo Last
+      </button>
+
+      <!-- Export Button (Logic coming in next step) -->
+      <button
+        (click)="exportData()"
+        class="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-bold text-blue-600 hover:bg-blue-50 transition-all shadow-sm">
+        <span>📥</span> Export CSV
+      </button>
+    </div>
+
+    <!-- Danger Zone: Clear All -->
+    <button
+      (click)="confirmClear()"
+      class="flex items-center gap-2 px-4 py-2 bg-red-50 border border-red-100 rounded-xl text-sm font-bold text-red-600 hover:bg-red-100 transition-all">
+      <span>🗑️</span> Clear Vault
+    </button>
+  </div>
+
+  <!-- 4. SEARCH & AUDIT TRAIL -->
   <div class="space-y-4">
     <div class="relative">
       <span class="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-400">🔍</span>
@@ -112,6 +139,12 @@
             <p class="text-sm font-mono font-bold text-slate-900">€{{ item.amount }}</p>
             <p class="text-[10px] text-green-600 font-bold uppercase">Verified</p>
           </div>
+
+          <button (click)="finance.deleteTransaction(item.id)"
+                  class="opacity-0 group-hover:opacity-100 p-2 hover:bg-red-50 text-red-400 hover:text-red-600 rounded-lg transition-all">
+            🗑️
+          </button>
+
         </div>
       } @empty {
         <div class="text-center py-20 bg-white rounded-3xl border-2 border-dashed border-slate-200">

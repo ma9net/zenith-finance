@@ -15,11 +15,11 @@ export class Dashboard {
   public finance = inject(FinanceService);
 
   // Local state for the "Add" inputs
- newAmount = signal('');
+  newAmount = signal('');
   newCategory = signal('');
 
   submitTransaction() {
-   const amount = this.newAmount();
+    const amount = this.newAmount();
     const category = this.newCategory();
 
     if (amount) {
@@ -28,5 +28,19 @@ export class Dashboard {
       this.newAmount.set('');
       this.newCategory.set('');
     }
+  }
+
+  confirmClear() {
+    if (
+      confirm(
+        'Are you sure? This will permanently wipe the entire Audit Trail.',
+      )
+    ) {
+      this.finance.clearAll();
+    }
+  }
+
+  exportData() {
+    this.finance.exportToCsv();
   }
 }
