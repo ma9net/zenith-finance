@@ -18,12 +18,17 @@ export interface Transaction {
   date: Date;
 }
 
+// Define the possible filter periods
+export type FilterPeriod = 'all' | 'today' | 'week' | 'month';
+
 @Injectable({ providedIn: 'root' })
 export class FinanceService {
   private platformId = inject(PLATFORM_ID); // Inject the platform token
   private isBrowser = isPlatformBrowser(this.platformId); // Check if it's a browser
 
   private readonly STORAGE_KEY = 'zenith_audit_trail';
+
+  activePeriod = signal<FilterPeriod>('all');
 
   // --- Signals ---
   private transactions = signal<Transaction[]>([]);
@@ -36,14 +41,41 @@ export class FinanceService {
 
   // --- Computed Views ---
   filteredHistory = computed(() => {
-    const query = this.searchQuery().toLowerCase().trim();
     const list = this.transactions();
-    if (!query) return list;
+    const query = this.searchQuery().toLowerCase().trim();
+    const period = this.activePeriod();
+    const now = new Date();
 
-    return list.filter(
+    // First: Filter by Search Query
+    let results = list.filter(
       (t) =>
         t.category.toLowerCase().includes(query) || t.amount.includes(query),
     );
+
+    // Second: Filter by Date Range
+    if (period !== 'all') {
+      results = results.filter((t) => {
+        const txDate = new Date(t.date);
+
+        switch (period) {
+          case 'today':
+            return txDate.toDateString() === now.toDateString();
+          case 'week':
+            const oneWeekAgo = new Date();
+            oneWeekAgo.setDate(now.getDate() - 7);
+            return txDate >= oneWeekAgo;
+          case 'month':
+            return (
+              txDate.getMonth() === now.getMonth() &&
+              txDate.getFullYear() === now.getFullYear()
+            );
+          default:
+            return true;
+        }
+      });
+    }
+
+    return results;
   });
 
   totalBalance = computed(() => {
@@ -154,4 +186,22 @@ export class FinanceService {
     const timestamp = new Date().toISOString().split('T')[0];
     CsvUtils.downloadFile(csvContent, `Zenith_Audit_${timestamp}.csv`);
   }
+
+  /*
+   * Logic to calculate percentages of categories for the UI
+   **/
+  categoryDistribution = computed(() => {
+    const list = this.filteredHistory();
+    if (list.length === 0) return [];
+
+    const counts: Record<string, number> = {};
+    list.forEach((t) => (counts[t.category] = (counts[t.category] || 0) + 1));
+
+    return Object.entries(counts)
+      .map(([name, count]) => ({
+        name,
+        percentage: (count / list.length) * 100,
+      }))
+      .sort((a, b) => b.percentage - a.percentage);
+  });
 }

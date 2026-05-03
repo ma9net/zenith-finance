@@ -1,6 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FinanceService } from '@zenith-finance/data-access';
+import { FilterPeriod, FinanceService } from '@zenith-finance/data-access';
 import { FormsModule } from '@angular/forms';
 import { SummaryCard } from '@zenith-finance/ui'
 
@@ -17,6 +17,8 @@ export class Dashboard {
   // Local state for the "Add" inputs
   newAmount = signal('');
   newCategory = signal('');
+
+  periods: FilterPeriod[] = ['all', 'today', 'week', 'month'];
 
   submitTransaction() {
     const amount = this.newAmount();
