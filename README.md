@@ -29,6 +29,3 @@ This project follows a **Modular Monorepo** structure, strictly separating conce
 1. **Install Dependencies**: `npm install`
 2. **Run Development Server**: `ng serve`
 3. **Build Production**: `ng build --configuration production`
-
----
-*Developed with a focus on European Fintech Standards.*
