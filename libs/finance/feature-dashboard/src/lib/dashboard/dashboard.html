@@ -1,218 +1,214 @@
-<div class="p-6 max-w-2xl mx-auto space-y-8 bg-slate-50 min-h-screen">
+<div class="isolate min-h-screen bg-[#F8FAFC] font-sans text-slate-900 selection:bg-blue-100 selection:text-blue-700">
 
-  <!-- 1. SUMMARY CARDS (Moved inside) -->
-  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
-    <lib-summary-card
-      label="Total Balance (Including Tax)"
-      [value]="finance.currencySymbol() + finance.totalWithTax()"
-      type="primary"
-      icon="🏦">
-    </lib-summary-card>
+  <div class="mx-auto max-w-7xl p-4 sm:p-6 lg:p-8 space-y-8">
 
-    <lib-summary-card
-      label="VAT Payable"
-      [value]="finance.currencySymbol() + finance.taxAmount()"
-      type="warning"
-      icon="📜">
-    </lib-summary-card>
+    <!-- 1. PREMIUM SUMMARY CARDS -->
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <lib-summary-card
+        label="Total Balance"
+        [value]="finance.currencySymbol() + finance.displayTotal()"
+        type="primary"
+        icon="🏦">
+      </lib-summary-card>
 
-    <lib-summary-card
-      label="Number of Transactions"
-      [value]="finance.filteredHistory().length.toString()"
-      type="success"
-      icon="📈">
-    </lib-summary-card>
+      <lib-summary-card
+        label="VAT Payable"
+        [value]="finance.currencySymbol() + finance.taxAmount()"
+        type="warning"
+        icon="📜">
+      </lib-summary-card>
 
-    <lib-summary-card
-      label="LTC Equivalent (BEP-20)"
-      [value]="'Ł ' + finance.totalInLtc()"
-      type="primary"
-      icon="⚡">
-    </lib-summary-card>
-  </div>
+      <lib-summary-card
+        label="Active Entries"
+        [value]="finance.filteredHistory().length.toString()"
+        type="success"
+        icon="📈">
+      </lib-summary-card>
 
-  <!-- 2. HEADER & INPUT CARD -->
-  <div class="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden">
-    <div class="bg-slate-900 p-4">
-      <h2 class="text-xl font-bold text-white flex items-center gap-2">
-        <span>🛡️</span> Zenith Auditor
-      </h2>
+      <lib-summary-card
+        label="LTC (BEP-20)"
+        [value]="'Ł ' + finance.totalInLtc()"
+        type="crypto"
+        icon="⚡">
+      </lib-summary-card>
     </div>
 
-    <div class="p-6 space-y-4">
-      <form [formGroup]="auditForm" (ngSubmit)="submitTransaction()" class="p-6 space-y-4">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <!-- Category Input -->
-          <div>
-            <label class="block text-xs font-bold text-slate-500 uppercase">Category</label>
-            <input
-              formControlName="category"
-              type="text"
-              [class.border-red-500]="auditForm.get('category')?.invalid && auditForm.get('category')?.touched"
-              class="mt-1 block w-full border border-slate-200 rounded-xl p-3 bg-slate-50 focus:ring-2 focus:ring-blue-500 outline-none" />
+    <!-- 2. MAIN WORKSPACE -->
+    <div class="grid grid-cols-1 gap-8 lg:grid-cols-12 items-start">
+
+      <!-- LEFT: Ledger & Form (8 Columns) -->
+      <div class="lg:col-span-8 space-y-8">
+
+        <!-- Transaction Input Card -->
+        <div class="overflow-hidden rounded-[2.5rem] border border-white bg-white/70 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.05)] backdrop-blur-xl">
+          <div class="flex items-center justify-between bg-slate-900 px-8 py-6">
+            <h2 class="flex items-center gap-3 text-lg font-bold text-white">
+              <span class="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-500/20 text-blue-400">🛡️</span>
+              Zenith Auditor
+            </h2>
+            <div class="flex h-2 w-2 animate-pulse rounded-full bg-emerald-400 shadow-[0_0_12px_rgba(52,211,153,0.6)]"></div>
           </div>
 
-          <!-- Amount Input -->
-          <div>
-            <label class="block text-xs font-bold text-slate-500 uppercase">Amount (€)</label>
-            <input
-              formControlName="amount"
-              type="text"
-              [class.border-red-500]="auditForm.get('amount')?.invalid && auditForm.get('amount')?.touched"
-              class="mt-1 block w-full border border-slate-200 rounded-xl p-3 bg-slate-50 focus:ring-2 focus:ring-blue-500 outline-none" />
+          <form [formGroup]="auditForm" (ngSubmit)="submitTransaction()" class="p-8 space-y-8">
+            <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+              <div class="space-y-2">
+                <label for="cat" class="ml-1 text-[11px] font-black uppercase tracking-[0.15em] text-slate-400">Category</label>
+                <input id="cat" formControlName="category" type="text" placeholder="e.g. Server Costs"
+                       class="w-full rounded-2xl border-2 border-slate-100 bg-slate-50/50 p-4 font-medium outline-none transition-all focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/5" />
+              </div>
+              <div class="space-y-2">
+                <label for="amt" class="ml-1 text-[11px] font-black uppercase tracking-[0.15em] text-slate-400">Amount ({{finance.selectedCurrency()}})</label>
+                <input id="amt" formControlName="amount" type="text" placeholder="0.00"
+                       class="w-full rounded-2xl border-2 border-slate-100 bg-slate-50/50 p-4 font-mono font-normal outline-none transition-all focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/5" />
+              </div>
+            </div>
+
+            <button type="submit" [disabled]="auditForm.invalid"
+                    class="group relative w-full overflow-hidden rounded-2xl bg-blue-600 py-4 font-black tracking-wide text-white shadow-xl transition-all hover:bg-blue-700 hover:shadow-blue-200 disabled:bg-slate-200 disabled:text-slate-400">
+              <span class="relative z-10 flex items-center justify-center gap-2">
+                RECORD TO BLOCKCHAIN LEDGER
+                <span class="transition-transform group-hover:translate-x-1">→</span>
+              </span>
+            </button>
+          </form>
+
+          <!-- High-End Receipt Footer -->
+          <div class="border-t border-slate-100 bg-slate-50/50 p-8 space-y-4">
+            <div class="flex justify-between text-sm font-medium text-slate-500">
+              <span>Current Valuation Subtotal</span>
+              <span class="font-mono">{{ finance.currencySymbol() }}{{ finance.displayTotal() }}</span>
+            </div>
+            <div class="flex items-center justify-between border-t border-slate-200 pt-6">
+              <div>
+                <p class="text-xl font-black text-slate-900">Total Audit Amount</p>
+                <p class="text-[10px] font-bold uppercase tracking-widest text-emerald-600">Precision Verified</p>
+              </div>
+              <span class="text-4xl font-mono font-black tracking-tighter text-blue-600">
+                {{ finance.currencySymbol() }}{{ finance.displayTotal() }}
+              </span>
+            </div>
           </div>
         </div>
 
-        <button
-          type="submit"
-          [disabled]="auditForm.invalid"
-          class="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 text-white font-bold py-3 rounded-xl transition-all shadow-lg">
-          Add to Audit Trail
-        </button>
-      </form>
-    </div>
-
-    <!-- SUMMARY SECTION -->
-    <div class="bg-slate-50 p-6 border-t border-slate-100">
-      <div class="flex justify-between text-sm mb-2">
-        <span class="text-slate-500 font-medium">Subtotal:</span>
-        <span class="font-mono text-slate-700">€{{ finance.totalBalance() }}</span>
-      </div>
-      <div class="flex justify-between text-sm mb-4">
-        <span class="text-slate-500 font-medium">VAT (20%):</span>
-        <span class="font-mono text-slate-700">€{{ finance.taxAmount() }}</span>
-      </div>
-      <div class="flex justify-between items-center pt-4 border-t border-slate-200">
-        <span class="text-lg font-bold text-slate-900">Total Audit:</span>
-        <span class="text-2xl font-mono font-black text-blue-600">€{{ finance.totalWithTax() }}</span>
-      </div>
-    </div>
-  </div>
-
-  <!-- 3. GLOBAL ACTIONS TOOLBAR -->
-  <div class="flex flex-wrap items-center justify-between gap-4 px-2">
-    <div class="flex items-center gap-2">
-      <!-- Undo Button -->
-      <button
-        (click)="finance.undoLast()"
-        [disabled]="finance.filteredHistory().length === 0"
-        class="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm">
-        <span>↩️</span> Undo Last
-      </button>
-
-      <!-- Export Button (Logic coming in next step) -->
-      <button
-        (click)="exportData()"
-        class="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-bold text-blue-600 hover:bg-blue-50 transition-all shadow-sm">
-        <span>📥</span> Export CSV
-      </button>
-    </div>
-
-    <!-- Danger Zone: Clear All -->
-    <button
-      (click)="confirmClear()"
-      class="flex items-center gap-2 px-4 py-2 bg-red-50 border border-red-100 rounded-xl text-sm font-bold text-red-600 hover:bg-red-100 transition-all">
-      <span>🗑️</span> Clear Vault
-    </button>
-  </div>
-
-  <!-- 4. TEMPORAL FILTER BAR -->
-  <div class="flex items-center justify-between gap-4 mb-6">
-    <div class="flex items-center gap-1 p-1 bg-slate-200/50 rounded-2xl w-fit">
-      @for (period of periods; track period) {
-        <button
-          (click)="finance.activePeriod.set(period)"
-          [class]="finance.activePeriod() === period
-        ? 'bg-white text-blue-600 shadow-sm'
-        : 'text-slate-500 hover:text-slate-700'"
-          class="px-4 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all">
-          {{ period }}
-        </button>
-      }
-    </div>
-    <div class="flex items-center gap-1 p-1 bg-slate-800 rounded-2xl">
-      @for (curr of currencies; track curr) {
-        <button
-          (click)="finance.selectedCurrency.set(curr)"
-          [class]="finance.selectedCurrency() === curr
-          ? 'bg-blue-600 text-white shadow-lg'
-          : 'text-slate-300 hover:text-white'"
-          class="px-4 py-1.5 rounded-xl text-[10px] font-medium transition-all">
-          {{ curr }}
-        </button>
-      }
-    </div>
-  </div>
-
-  <!-- CATEGORY TREND VISUALIZER -->
-  <div class="space-y-2">
-    <div class="flex justify-between items-end">
-      <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Category Distribution</h4>
-      <span class="text-[10px] text-slate-400 italic">Based on current filters</span>
-    </div>
-
-    <div class="flex h-3 w-full rounded-full overflow-hidden bg-slate-200">
-      @for (cat of finance.categoryDistribution(); track cat.name; let i = $index) {
-        <div
-          [style.width.%]="cat.percentage"
-          [class]="['bg-blue-500', 'bg-emerald-500', 'bg-amber-500', 'bg-indigo-500'][i % 4]"
-          class="h-full border-r border-white/20 last:border-0"
-          [title]="cat.name + ': ' + (cat.percentage | number:'1.0-0') + '%'">
-        </div>
-      }
-    </div>
-  </div>
-
-  <!-- 5. SEARCH & AUDIT TRAIL -->
-  <div class="space-y-4">
-    <div class="relative">
-      <span class="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-400">🔍</span>
-      <input
-        type="text"
-        (input)="finance.searchQuery.set(searchInput.value)"
-        #searchInput
-        placeholder="Filter by category or amount..."
-        class="block w-full pl-12 pr-4 py-3 border-none rounded-2xl bg-white shadow-sm focus:ring-2 focus:ring-blue-500 outline-none"
-      />
-    </div>
-
-    <div class="flex justify-between items-center px-2">
-      <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Live Audit Trail</h3>
-      <span class="text-[10px] bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-bold">
-        {{ finance.filteredHistory().length }} ENTRIES
-      </span>
-    </div>
-
-    <div class="space-y-3">
-      @for (item of finance.filteredHistory(); track item.id) {
-        <div
-          class="flex items-center justify-between p-4 bg-white rounded-2xl border border-slate-100 shadow-sm hover:border-blue-300 transition-all group">
+        <!-- Audit Trail Section -->
+        <div class="space-y-6">
           <div class="flex items-center gap-4">
-            <div
-              class="h-10 w-10 rounded-full bg-slate-50 flex items-center justify-center text-lg group-hover:bg-blue-50 transition-colors">
-              📊
-            </div>
-            <div>
-              <p class="text-sm font-bold text-slate-800">{{ item.category }}</p>
-              <p class="text-[10px] text-slate-400 font-medium">{{ item.date | date:'medium' }}</p>
+            <div class="relative flex-1">
+              <span class="absolute inset-y-0 left-5 flex items-center text-slate-400">🔍</span>
+              <input type="text" (input)="finance.searchQuery.set(searchInput.value)" #searchInput
+                     placeholder="Search category, hash, or amount..."
+                     class="w-full rounded-2xl border-none bg-white py-4 pl-14 pr-6 font-medium shadow-sm outline-none ring-1 ring-slate-200 transition-all focus:ring-2 focus:ring-blue-500" />
             </div>
           </div>
-          <div class="text-right">
-            <p class="text-sm font-mono font-bold text-slate-900">€{{ item.amount }}</p>
-            <p class="text-[10px] text-green-600 font-bold uppercase">Verified</p>
+
+          <div class="space-y-3">
+            @for (item of finance.filteredHistory(); track item.id) {
+              <div class="group flex items-center justify-between rounded-3xl border border-white/50 bg-white/50 p-4 shadow-sm transition-all hover:border-blue-200 hover:bg-white hover:shadow-md">
+                <div class="flex items-center gap-4">
+                  <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100 text-xl transition-colors group-hover:bg-blue-50">📊</div>
+                  <div>
+                    <p class="text-sm font-normal text-slate-800">{{ item.category }}</p>
+                    <p class="text-[10px] font-bold uppercase tracking-tighter text-slate-400">{{ item.date | date:'MMM d, HH:mm' }}</p>
+                  </div>
+                </div>
+                <div class="flex items-center gap-6">
+                  <div class="text-right">
+                    <p class="font-mono text-sm font-black text-slate-900">
+                      {{ finance.currencySymbol() }}{{ item.amount }}
+                    </p>
+                    <span class="text-[9px] font-black uppercase tracking-widest text-emerald-500">Confirmed</span>
+                  </div>
+                  <button (click)="finance.deleteTransaction(item.id)"
+                          class="rounded-xl p-2 text-slate-300 opacity-0 transition-all hover:bg-red-50 hover:text-red-500 group-hover:opacity-100">
+                    🗑️
+                  </button>
+                </div>
+              </div>
+            } @empty {
+              <div class="flex flex-col items-center justify-center rounded-[2.5rem] border-2 border-dashed border-slate-200 py-20">
+                <span class="text-4xl grayscale opacity-50">📂</span>
+                <p class="mt-4 text-sm font-bold text-slate-400 italic">No transactions found in the vault.</p>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT: Control Center (4 Columns) -->
+      <aside class="lg:col-span-4 space-y-6 lg:sticky lg:top-8 flex flex-col">
+
+        <!-- Quick Actions & Settings -->
+        <div class="rounded-[2.5rem] border border-white bg-white p-6 shadow-xl shadow-slate-200/50 space-y-6">
+          <div class="space-y-4">
+            <h4 class="text-center text-[11px] font-black uppercase tracking-[0.2em] text-slate-400">Time Horizon</h4>
+            <div class="flex gap-1 rounded-2xl bg-slate-100 p-1">
+              @for (p of periods; track p) {
+                <button (click)="finance.activePeriod.set(p)"
+                        [class]="finance.activePeriod() === p ? 'bg-white shadow-sm text-blue-600' : 'text-slate-500 hover:text-slate-900'"
+                        class="flex-1 rounded-xl py-2 text-[12px] font-black uppercase transition-all">
+                  {{p}}
+                </button>
+              }
+            </div>
           </div>
 
-          <button (click)="finance.deleteTransaction(item.id)"
-                  class="opacity-0 group-hover:opacity-100 p-2 hover:bg-red-50 text-red-400 hover:text-red-600 rounded-lg transition-all">
-            🗑️
-          </button>
+          <div class="space-y-4">
+            <h4 class="text-center text-[12px] font-black uppercase tracking-[0.2em] text-slate-400">Base Currency</h4>
+            <div class="flex gap-1 rounded-2xl bg-slate-900 p-1">
+              @for (c of currencies; track c) {
+                <button (click)="finance.selectedCurrency.set(c)"
+                        [class]="finance.selectedCurrency() === c ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white'"
+                        class="flex-1 rounded-xl py-2 text-[12px] font-normal transition-all">
+                  {{c}}
+                </button>
+              }
+            </div>
+          </div>
 
+          <hr class="border-slate-100">
+
+          <div class="grid grid-cols-2 gap-3">
+            <button (click)="finance.undoLast()" [disabled]="finance.filteredHistory().length === 0"
+                    class="flex flex-col items-center justify-center rounded-2xl border border-slate-100 bg-slate-50/50 py-4 transition-all hover:bg-white hover:shadow-sm disabled:opacity-30">
+              <span class="text-lg">↩️</span>
+              <span class="mt-1 text-[10px] font-black uppercase text-slate-500">Undo</span>
+            </button>
+            <button (click)="exportData()"
+                    class="flex flex-col items-center justify-center rounded-2xl border border-slate-100 bg-slate-50/50 py-4 transition-all hover:bg-white hover:shadow-sm">
+              <span class="text-lg">📥</span>
+              <span class="mt-1 text-[10px] font-black uppercase text-slate-500">Export</span>
+            </button>
+          </div>
         </div>
-      } @empty {
-        <div class="text-center py-20 bg-white rounded-3xl border-2 border-dashed border-slate-200">
-          <p class="text-slate-400 italic text-sm">No transactions found in the vault.</p>
+
+        <lib-analytics-breakdown [data]="finance.categoryTotals()"></lib-analytics-breakdown>
+
+        <!-- Category Distribution (Visual Chart) -->
+        <div class="rounded-[2.5rem] border border-white bg-white p-8 shadow-xl shadow-slate-200/50 space-y-6">
+          <div class="flex items-center justify-between">
+            <h4 class="text-[11px] font-black uppercase tracking-widest text-slate-400">Distribution</h4>
+            <span class="text-[10px] font-bold text-blue-500">Live View</span>
+          </div>
+
+          <div class="flex h-4 w-full gap-1 overflow-hidden rounded-full bg-slate-100">
+            @for (cat of finance.categoryDistribution(); track cat.name; let i = $index) {
+              <div [style.width.%]="cat.percentage"
+                   [class]="['bg-blue-500', 'bg-emerald-400', 'bg-amber-400', 'bg-indigo-500'][i % 4]"
+                   class="h-full transition-all duration-1000" [title]="cat.name"></div>
+            }
+          </div>
+
+          <div class="grid grid-cols-2 gap-y-2">
+            @for (cat of finance.categoryDistribution().slice(0,4); track cat.name; let i = $index) {
+              <div class="flex items-center gap-2">
+                <div [class]="['bg-blue-500', 'bg-emerald-400', 'bg-amber-400', 'bg-indigo-500'][i % 4]" class="h-2 w-2 rounded-full"></div>
+                <span class="text-[10px] font-bold text-slate-500 truncate">{{cat.name}}</span>
+              </div>
+            }
+          </div>
         </div>
-      }
+      </aside>
+
     </div>
   </div>
 </div>

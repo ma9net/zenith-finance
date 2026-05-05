@@ -12,11 +12,18 @@ import {
   Validators,
 } from '@angular/forms';
 import { SummaryCard } from '@zenith-finance/ui'
+import { AnalyticsBreakdown } from '../../../../ui/src/lib/analytics-breakdown';
 
 @Component({
   standalone: true,
   selector: 'lib-dashboard',
-  imports: [CommonModule, FormsModule, SummaryCard, ReactiveFormsModule],
+  imports: [
+    CommonModule,
+    FormsModule,
+    SummaryCard,
+    ReactiveFormsModule,
+    AnalyticsBreakdown,
+  ],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css',
 })

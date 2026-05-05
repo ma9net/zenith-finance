@@ -20,128 +20,126 @@ export interface Transaction {
 }
 
 export type CurrencyCode = 'EUR' | 'USD' | 'GBP';
-
-// Define the possible filter periods
 export type FilterPeriod = 'all' | 'today' | 'week' | 'month';
 
 @Injectable({ providedIn: 'root' })
 export class FinanceService {
-  private platformId = inject(PLATFORM_ID); // Inject the platform token
-  private isBrowser = isPlatformBrowser(this.platformId); // Check if it's a browser
-
+  private readonly platformId = inject(PLATFORM_ID);
+  private readonly isBrowser = isPlatformBrowser(this.platformId);
   private readonly STORAGE_KEY = 'zenith_audit_trail';
 
-  activePeriod = signal<FilterPeriod>('all');
+  // --- State Signals ---
+  private readonly transactions = signal<Transaction[]>([]);
+  readonly searchQuery = signal<string>('');
+  readonly activePeriod = signal<FilterPeriod>('all');
+  readonly selectedCurrency = signal<CurrencyCode>('EUR');
+  readonly taxRate = signal<number>(0.2);
 
-  // --- Signals ---
-  private transactions = signal<Transaction[]>([]);
-  searchQuery = signal<string>('');
-  taxRate = signal<number>(0.2); // 20% VAT
-
-  selectedCurrency = signal<CurrencyCode>('EUR');
-
-  // Mock Exchange Rates (EUR is base)
-  private rates: Record<CurrencyCode, number> = {
+  // Mock Exchange Rates (EUR as Base)
+  private readonly rates: Record<CurrencyCode, number> = {
     EUR: 1,
     USD: 1.09,
     GBP: 0.84,
   };
 
   /**
-   * THE RESOURCE API
-   * Automatically fetches the LTC price and manages the "loading" state.
+   * Fetch LTC Price
    */
   ltcResource = resource({
     loader: async () => {
-      if (typeof window === 'undefined') {
-        return null; // SSR skip
-      }
-
+      if (!this.isBrowser) return null;
       try {
         const response = await fetch(
           'https://api.coinbase.com/v2/prices/LTC-EUR/spot',
         );
-
-        if (!response.ok) return null;
-
         const data = await response.json();
-        return parseFloat(data?.data?.amount ?? '0');
+        return new Big(data?.data?.amount ?? '0');
       } catch {
-        return null;
+        return new Big(0);
       }
     },
   });
 
   // --- Computed Views ---
+
   filteredHistory = computed(() => {
     const list = this.transactions();
     const query = this.searchQuery().toLowerCase().trim();
     const period = this.activePeriod();
     const now = new Date();
 
-    // First: Filter by Search Query
-    let results = list.filter(
-      (t) =>
-        t.category.toLowerCase().includes(query) || t.amount.includes(query),
+    return list.filter((t) => {
+      const matchesSearch =
+        t.category.toLowerCase().includes(query) || t.amount.includes(query);
+      if (!matchesSearch) return false;
+      if (period === 'all') return true;
+
+      const txDate = new Date(t.date);
+      switch (period) {
+        case 'today':
+          return txDate.toDateString() === now.toDateString();
+        case 'week':
+          const weekAgo = new Date();
+          weekAgo.setDate(now.getDate() - 7);
+          return txDate >= weekAgo;
+        case 'month':
+          return (
+            txDate.getMonth() === now.getMonth() &&
+            txDate.getFullYear() === now.getFullYear()
+          );
+        default:
+          return true;
+      }
+    });
+  });
+
+  /**
+   * Internal Big instance for precise calculations
+   */
+  private rawTotalBalance = computed(() => {
+    return this.transactions().reduce(
+      (acc, t) => acc.plus(new Big(t.amount || 0)),
+      new Big(0),
     );
-
-    // Second: Filter by Date Range
-    if (period !== 'all') {
-      results = results.filter((t) => {
-        const txDate = new Date(t.date);
-
-        switch (period) {
-          case 'today':
-            return txDate.toDateString() === now.toDateString();
-          case 'week':
-            const oneWeekAgo = new Date();
-            oneWeekAgo.setDate(now.getDate() - 7);
-            return txDate >= oneWeekAgo;
-          case 'month':
-            return (
-              txDate.getMonth() === now.getMonth() &&
-              txDate.getFullYear() === now.getFullYear()
-            );
-          default:
-            return true;
-        }
-      });
-    }
-
-    return results;
   });
 
-  totalBalance = computed(() => {
-    return this.transactions()
-      .reduce((acc, t) => acc.plus(MathUtils.toSafeBig(t.amount)), new Big(0))
-      .toFixed(2);
-  });
+  totalBalance = computed(() => this.rawTotalBalance().toFixed(2));
 
-  taxAmount = computed(() => {
-    return new Big(this.totalBalance()).times(this.taxRate()).toFixed(2);
-  });
+  taxAmount = computed(() =>
+    this.rawTotalBalance().times(this.taxRate()).toFixed(2),
+  );
 
-  totalWithTax = computed(() => {
-    return new Big(this.totalBalance()).plus(this.taxAmount()).toFixed(2);
-  });
+  totalWithTax = computed(() =>
+    this.rawTotalBalance()
+      .times(1 + this.taxRate())
+      .toFixed(2),
+  );
 
   totalInLtc = computed(() => {
-    const totalEur = this.totalWithTax();
-    const currentPrice = this.ltcResource.value() || 1; // Fallback to 1 to avoid Div by Zero
+    const totalEur = new Big(this.totalWithTax());
+    const ltcPrice = this.ltcResource.value() || new Big(1);
+    return ltcPrice.gt(0) ? totalEur.div(ltcPrice).toFixed(4) : '0.0000';
+  });
 
-    if (parseFloat(totalEur) === 0) return '0.0000';
-    return new Big(totalEur).div(currentPrice).toFixed(4);
+  currencySymbol = computed(() => {
+    const symbols: Record<CurrencyCode, string> = {
+      EUR: '€',
+      USD: '$',
+      GBP: '£',
+    };
+    return symbols[this.selectedCurrency()];
+  });
+
+  displayTotal = computed(() => {
+    const rate = this.rates[this.selectedCurrency()];
+    return new Big(this.totalWithTax()).times(rate).toFixed(2);
   });
 
   constructor() {
-    if (this.isBrowser) {
-      this.hydrate();
-    }
-
     this.hydrate();
-    // Auto-sync to LocalStorage
+
+    // Persist changes to LocalStorage
     effect(() => {
-      // Only save if we are on the client side
       if (this.isBrowser) {
         localStorage.setItem(
           this.STORAGE_KEY,
@@ -151,44 +149,19 @@ export class FinanceService {
     });
   }
 
-  currencySymbol = computed(() => {
-    const symbols = { EUR: '€', USD: '$', GBP: '£' };
-    return symbols[this.selectedCurrency()];
-  });
-
-  // Update the calculated values to respect the selection
-  // We wrap the final total in the selected rate
-  displayTotal = computed(() => {
-    const baseTotal = this.totalWithTax(); // This is in EUR
-    const rate = this.rates[this.selectedCurrency()];
-    return new Big(baseTotal).times(rate).toFixed(2);
-  });
+  // --- Actions ---
 
   addTransaction(amount: string, category: string) {
-    const safeAmount = MathUtils.toSafeBig(amount);
-    if (safeAmount.lte(0)) return;
+    if (!amount || isNaN(parseFloat(amount))) return;
 
     const newTx: Transaction = {
       id: crypto.randomUUID(),
-      amount: safeAmount.toFixed(2),
+      amount: new Big(amount).toFixed(2),
       category: category || 'General',
       date: new Date(),
     };
 
     this.transactions.update((prev) => [newTx, ...prev]);
-  }
-
-  private hydrate() {
-    if (!this.isBrowser) return;
-
-    const saved = localStorage.getItem(this.STORAGE_KEY);
-    if (saved) {
-      const parsed = JSON.parse(saved).map((t: any) => ({
-        ...t,
-        date: new Date(t.date),
-      }));
-      this.transactions.set(parsed);
-    }
   }
 
   /**
@@ -202,7 +175,6 @@ export class FinanceService {
    * The "Panic Button": Quickly removes the most recent entry.
    */
   undoLast() {
-    if (this.transactions().length === 0) return;
     this.transactions.update((prev) => prev.slice(1));
   }
 
@@ -213,22 +185,7 @@ export class FinanceService {
     this.transactions.set([]);
   }
 
-  /**
-   * Exports transaction data to a CSV file named "Zenith_Audit_YYYY-MM-DD.csv"
-   * Includes columns: ID, Date, Category, and Amount in Euros.
-   */
-  exportToCsv() {
-    const data = this.transactions().map((t) => ({
-      ID: t.id,
-      Date: t.date.toISOString(),
-      Category: t.category,
-      Amount_EUR: t.amount,
-    }));
-
-    const csvContent = CsvUtils.convertToCsv(data);
-    const timestamp = new Date().toISOString().split('T')[0];
-    CsvUtils.downloadFile(csvContent, `Zenith_Audit_${timestamp}.csv`);
-  }
+  // --- Analytics Engine ---
 
   /*
    * Logic to calculate percentages of categories for the UI
@@ -247,4 +204,66 @@ export class FinanceService {
       }))
       .sort((a, b) => b.percentage - a.percentage);
   });
+
+  categoryTotals = computed(() => {
+    const list = this.filteredHistory();
+    const balance = this.rawTotalBalance();
+    const totals: Record<string, Big> = {};
+
+    // Aggregate totals
+    list.forEach((t) => {
+      const amt = new Big(t.amount);
+      totals[t.category] = (totals[t.category] || new Big(0)).plus(amt);
+    });
+
+    // Map to the final structure
+    return Object.entries(totals)
+      .map(([name, total]) => {
+        // Logic: If balance is 0, percentage is 0.
+        // Otherwise, (CategoryTotal / GlobalTotal) * 100
+        const percentageValue = balance.gt(0)
+          ? Number(total.div(balance).times(100).toFixed(2))
+          : 0;
+
+        return {
+          name,
+          value: total.toFixed(2),
+          percentage: percentageValue,
+        };
+      })
+      .sort((a, b) => b.percentage - a.percentage);
+  });
+
+  private hydrate() {
+    if (!this.isBrowser) return;
+    const saved = localStorage.getItem(this.STORAGE_KEY);
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved).map((t: any) => ({
+          ...t,
+          date: new Date(t.date),
+        }));
+        this.transactions.set(parsed);
+      } catch (e) {
+        console.error('Failed to parse audit trail', e);
+      }
+    }
+  }
+
+  /**
+   * Exports transaction data to a CSV file named "Zenith_Audit_YYYY-MM-DD.csv"
+   * Includes columns: ID, Date, Category, and Amount in Euros.
+   */
+  exportToCsv() {
+    const data = this.transactions().map((t) => ({
+      ID: t.id,
+      Date: t.date.toISOString(),
+      Category: t.category,
+      Amount_EUR: t.amount,
+    }));
+
+    const csvContent = CsvUtils.convertToCsv(data);
+    const timestamp = new Date().toISOString().split('T')[0];
+    CsvUtils.downloadFile(csvContent, `Zenith_Audit_${timestamp}.csv`);
+  }
 }
