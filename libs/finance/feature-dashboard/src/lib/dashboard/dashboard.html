@@ -4,14 +4,14 @@
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
     <lib-summary-card
       label="Total Balance (Including Tax)"
-      [value]="'€' + finance.totalWithTax()"
+      [value]="finance.currencySymbol() + finance.totalWithTax()"
       type="primary"
       icon="🏦">
     </lib-summary-card>
 
     <lib-summary-card
       label="VAT Payable"
-      [value]="'€' + finance.taxAmount()"
+      [value]="finance.currencySymbol() + finance.taxAmount()"
       type="warning"
       icon="📜">
     </lib-summary-card>
@@ -40,23 +40,36 @@
     </div>
 
     <div class="p-6 space-y-4">
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label class="block text-xs font-bold text-slate-500 uppercase">Category</label>
-          <input [(ngModel)]="newCategory" type="text" placeholder="e.g., Software"
-            class="mt-1 block w-full border border-slate-200 rounded-xl p-3 bg-slate-50 focus:ring-2 focus:ring-blue-500 outline-none" />
-        </div>
-        <div>
-          <label class="block text-xs font-bold text-slate-500 uppercase">Amount (€)</label>
-          <input [(ngModel)]="newAmount" type="text" placeholder="0,00"
-            class="mt-1 block w-full border border-slate-200 rounded-xl p-3 bg-slate-50 focus:ring-2 focus:ring-blue-500 outline-none" />
-        </div>
-      </div>
+      <form [formGroup]="auditForm" (ngSubmit)="submitTransaction()" class="p-6 space-y-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Category Input -->
+          <div>
+            <label class="block text-xs font-bold text-slate-500 uppercase">Category</label>
+            <input
+              formControlName="category"
+              type="text"
+              [class.border-red-500]="auditForm.get('category')?.invalid && auditForm.get('category')?.touched"
+              class="mt-1 block w-full border border-slate-200 rounded-xl p-3 bg-slate-50 focus:ring-2 focus:ring-blue-500 outline-none" />
+          </div>
 
-      <button (click)="submitTransaction()"
-        class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition-all shadow-lg shadow-blue-200">
-        Add to Audit Trail
-      </button>
+          <!-- Amount Input -->
+          <div>
+            <label class="block text-xs font-bold text-slate-500 uppercase">Amount (€)</label>
+            <input
+              formControlName="amount"
+              type="text"
+              [class.border-red-500]="auditForm.get('amount')?.invalid && auditForm.get('amount')?.touched"
+              class="mt-1 block w-full border border-slate-200 rounded-xl p-3 bg-slate-50 focus:ring-2 focus:ring-blue-500 outline-none" />
+          </div>
+        </div>
+
+        <button
+          type="submit"
+          [disabled]="auditForm.invalid"
+          class="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 text-white font-bold py-3 rounded-xl transition-all shadow-lg">
+          Add to Audit Trail
+        </button>
+      </form>
     </div>
 
     <!-- SUMMARY SECTION -->
@@ -104,17 +117,31 @@
   </div>
 
   <!-- 4. TEMPORAL FILTER BAR -->
-  <div class="flex items-center gap-1 p-1 bg-slate-200/50 rounded-2xl w-fit">
-    @for (period of periods; track period) {
-      <button
-        (click)="finance.activePeriod.set(period)"
-        [class]="finance.activePeriod() === period
+  <div class="flex items-center justify-between gap-4 mb-6">
+    <div class="flex items-center gap-1 p-1 bg-slate-200/50 rounded-2xl w-fit">
+      @for (period of periods; track period) {
+        <button
+          (click)="finance.activePeriod.set(period)"
+          [class]="finance.activePeriod() === period
         ? 'bg-white text-blue-600 shadow-sm'
         : 'text-slate-500 hover:text-slate-700'"
-        class="px-4 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all">
-        {{ period }}
-      </button>
-    }
+          class="px-4 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all">
+          {{ period }}
+        </button>
+      }
+    </div>
+    <div class="flex items-center gap-1 p-1 bg-slate-900 rounded-2xl">
+      @for (curr of currencies; track curr) {
+        <button
+          (click)="finance.selectedCurrency.set(curr)"
+          [class]="finance.selectedCurrency() === curr
+          ? 'bg-blue-600 text-white shadow-lg'
+          : 'text-slate-400 hover:text-white'"
+          class="px-4 py-1.5 rounded-xl text-[10px] font-black transition-all">
+          {{ curr }}
+        </button>
+      }
+    </div>
   </div>
 
   <!-- CATEGORY TREND VISUALIZER -->
@@ -158,9 +185,11 @@
 
     <div class="space-y-3">
       @for (item of finance.filteredHistory(); track item.id) {
-        <div class="flex items-center justify-between p-4 bg-white rounded-2xl border border-slate-100 shadow-sm hover:border-blue-300 transition-all group">
+        <div
+          class="flex items-center justify-between p-4 bg-white rounded-2xl border border-slate-100 shadow-sm hover:border-blue-300 transition-all group">
           <div class="flex items-center gap-4">
-            <div class="h-10 w-10 rounded-full bg-slate-50 flex items-center justify-center text-lg group-hover:bg-blue-50 transition-colors">
+            <div
+              class="h-10 w-10 rounded-full bg-slate-50 flex items-center justify-center text-lg group-hover:bg-blue-50 transition-colors">
               📊
             </div>
             <div>

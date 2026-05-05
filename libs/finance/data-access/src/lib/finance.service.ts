@@ -5,6 +5,7 @@ import {
   effect,
   PLATFORM_ID,
   inject,
+  resource,
 } from '@angular/core';
 import { MathUtils } from './utils/math-utils';
 import { isPlatformBrowser } from '@angular/common';
@@ -17,6 +18,8 @@ export interface Transaction {
   category: string;
   date: Date;
 }
+
+export type CurrencyCode = 'EUR' | 'USD' | 'GBP';
 
 // Define the possible filter periods
 export type FilterPeriod = 'all' | 'today' | 'week' | 'month';
@@ -35,9 +38,39 @@ export class FinanceService {
   searchQuery = signal<string>('');
   taxRate = signal<number>(0.2); // 20% VAT
 
-  // --- CRYPTO ENGINE ---
-  // In a real app, this would be updated via a WebSocket or HTTP Polling
-  ltcPriceEur = signal<number>(85.5); // Mock Price: 1 LTC = €85.50
+  selectedCurrency = signal<CurrencyCode>('EUR');
+
+  // Mock Exchange Rates (EUR is base)
+  private rates: Record<CurrencyCode, number> = {
+    EUR: 1,
+    USD: 1.09,
+    GBP: 0.84,
+  };
+
+  /**
+   * THE RESOURCE API
+   * Automatically fetches the LTC price and manages the "loading" state.
+   */
+  ltcResource = resource({
+    loader: async () => {
+      if (typeof window === 'undefined') {
+        return null; // SSR skip
+      }
+
+      try {
+        const response = await fetch(
+          'https://api.coinbase.com/v2/prices/LTC-EUR/spot',
+        );
+
+        if (!response.ok) return null;
+
+        const data = await response.json();
+        return parseFloat(data?.data?.amount ?? '0');
+      } catch {
+        return null;
+      }
+    },
+  });
 
   // --- Computed Views ---
   filteredHistory = computed(() => {
@@ -94,12 +127,10 @@ export class FinanceService {
 
   totalInLtc = computed(() => {
     const totalEur = this.totalWithTax();
+    const currentPrice = this.ltcResource.value() || 1; // Fallback to 1 to avoid Div by Zero
 
-    // Guard clause to prevent division by zero or unnecessary math
     if (parseFloat(totalEur) === 0) return '0.0000';
-
-    // We use Big.js division to prevent precision loss in crypto!
-    return new Big(totalEur).div(this.ltcPriceEur()).toFixed(4); // Crypto uses 4 decimals
+    return new Big(totalEur).div(currentPrice).toFixed(4);
   });
 
   constructor() {
@@ -120,7 +151,19 @@ export class FinanceService {
     });
   }
 
-  // --- Actions ---
+  currencySymbol = computed(() => {
+    const symbols = { EUR: '€', USD: '$', GBP: '£' };
+    return symbols[this.selectedCurrency()];
+  });
+
+  // Update the calculated values to respect the selection
+  // We wrap the final total in the selected rate
+  displayTotal = computed(() => {
+    const baseTotal = this.totalWithTax(); // This is in EUR
+    const rate = this.rates[this.selectedCurrency()];
+    return new Big(baseTotal).times(rate).toFixed(2);
+  });
+
   addTransaction(amount: string, category: string) {
     const safeAmount = MathUtils.toSafeBig(amount);
     if (safeAmount.lte(0)) return;
