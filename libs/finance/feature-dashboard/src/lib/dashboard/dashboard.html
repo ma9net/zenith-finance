@@ -130,14 +130,14 @@
         </button>
       }
     </div>
-    <div class="flex items-center gap-1 p-1 bg-slate-900 rounded-2xl">
+    <div class="flex items-center gap-1 p-1 bg-slate-800 rounded-2xl">
       @for (curr of currencies; track curr) {
         <button
           (click)="finance.selectedCurrency.set(curr)"
           [class]="finance.selectedCurrency() === curr
           ? 'bg-blue-600 text-white shadow-lg'
-          : 'text-slate-400 hover:text-white'"
-          class="px-4 py-1.5 rounded-xl text-[10px] font-black transition-all">
+          : 'text-slate-300 hover:text-white'"
+          class="px-4 py-1.5 rounded-xl text-[10px] font-medium transition-all">
           {{ curr }}
         </button>
       }
