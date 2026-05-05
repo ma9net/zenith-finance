@@ -1,29 +1,31 @@
-# Zenith Finance Hub 🚀
-**Enterprise-Grade Financial Auditor | Built with Angular 21**
+# 🛡️ Zenith Finance | Enterprise Audit Engine
+**A High-Precision, Zoneless Financial Dashboard built with Angular 21.**
 
-## 🎯 Project Vision
-Zenith Finance Hub is a high-performance financial auditing tool designed for European enterprise standards. It demonstrates advanced state management using **Angular Signals**, precise financial math via **Big.js**, and a scalable **Nx Monorepo** architecture.
+Zenith Finance is a specialized auditing tool designed to solve the critical challenges of financial data integrity in JavaScript environments. It focuses on mathematical absolute truth, durable state, and multi-dimensional reporting.
 
-## 🛠️ Tech Stack
-- **Framework:** Angular 21 (Signals-First, Zoneless)
-- **Architecture:** Nx Monorepo (DDD Pattern)
-- **Math:** Big.js (Arbitrary-precision decimal arithmetic)
-- **Styling:** Tailwind CSS
-- **Build Tool:** Esbuild
+---
 
-## 🏗️ Architecture Overview
-This project follows the **Domain-Driven Design (DDD)** approach:
-- `libs/finance/data-access`: Centralized State & Logic.
-- `libs/finance/feature-dashboard`: Page-level orchestration.
-- `libs/shared/ui`: Reusable design system components.
+## 🏛️ Architecture Philosophy
+This project follows a **Modular Monorepo** structure, strictly separating concerns:
+*   **`data-access`**: The "Brain" - Pure reactive logic, Signal-based state, and API resources.
+*   **`feature-dashboard`**: The "Face" - Smart components managing user intent and workflow.
+*   **`ui`**: The "Design System" - Reusable, atomic, and stateless presentation components.
 
-## 🚀 Getting Started (Development)
-1. **Install Dependencies:** `npm install`
-2. **Start Application:** `npx nx serve dashboard`
-3. **Run Tests:** `npx nx test finance-data-access`
+## 🚀 Core Technical Features
+| Feature | Implementation | Purpose |
+| :--- | :--- | :--- |
+| **Precision Math** | `Big.js` | Eliminates Floating Point errors in currency calculations. |
+| **Zoneless Reactivity** | Angular 21 Signals | Maximum performance by removing `Zone.js` overhead. |
+| **Durable State** | SSR-Safe LocalStorage | Persistence that survives refreshes and server-side rendering. |
+| **Crypto Integration** | Angular `resource()` | Live spot-price conversion for LTC (BEP-20). |
+| **Data Export** | `CsvUtils` | Native browser implementation for raw data portability. |
 
-## 📈 Key Features
-- [x] Signal-based reactive state.
-- [x] Precision tax calculation for EU regions.
-- [x] Responsive Enterprise Dashboard.
-- [ ] Multi-currency support (Planned).
+## 🛠️ Design Patterns
+1. **Strategy Pattern**: Used for multi-currency handling to switch exchange logic dynamically.
+2. **Resource Pattern**: Utilizing Angular 21's `resource` for declarative, non-blocking HTTP fetches.
+3. **Smart/Dumb Component Pattern**: Ensuring UI components are strictly for presentation.
+
+## 📦 Getting Started
+1. **Install Dependencies**: `npm install`
+2. **Run Development Server**: `ng serve`
+3. **Build Production**: `ng build --configuration production`
