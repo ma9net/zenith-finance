@@ -5,10 +5,10 @@ import { CommonModule } from '@angular/common';
   standalone: true,
   selector: 'lib-summary-card',
   imports: [CommonModule],
-  templateUrl: './summary-card.html',
-  styleUrl: './summary-card.css',
+  templateUrl: './summary-card.component.html',
+  styleUrl: './summary-card.component.css',
 })
-export class SummaryCard {
+export class SummaryCardComponent {
   label = input.required<string>();
   value = input.required<string>();
   icon = input<string>('💰');

@@ -1,16 +1,16 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { Dashboard } from './dashboard';
+import { SummaryCardComponent } from '@zenith-finance/ui';
 
-describe('Dashboard', () => {
-  let component: Dashboard;
-  let fixture: ComponentFixture<Dashboard>;
+describe('SummaryCardComponent', () => {
+  let component: SummaryCardComponent;
+  let fixture: ComponentFixture<SummaryCardComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [Dashboard],
+      imports: [SummaryCardComponent],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(Dashboard);
+    fixture = TestBed.createComponent(SummaryCardComponent);
     component = fixture.componentInstance;
     await fixture.whenStable();
   });

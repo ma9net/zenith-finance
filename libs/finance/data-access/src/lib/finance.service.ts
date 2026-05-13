@@ -7,7 +7,6 @@ import {
   inject,
   resource,
 } from '@angular/core';
-import { MathUtils } from './utils/math-utils';
 import { isPlatformBrowser } from '@angular/common';
 import Big from 'big.js';
 import { CsvUtils } from './utils/csv-utils';
@@ -207,20 +206,25 @@ export class FinanceService {
 
   categoryTotals = computed(() => {
     const list = this.filteredHistory();
-    const balance = this.rawTotalBalance();
     const totals: Record<string, Big> = {};
 
-    // Aggregate totals
+    // Aggregate totals from filtered list
     list.forEach((t) => {
       const amt = new Big(t.amount);
       totals[t.category] = (totals[t.category] || new Big(0)).plus(amt);
     });
 
+    // Calculate total balance from filtered list
+    const balance = list.reduce(
+      (acc, t) => acc.plus(new Big(t.amount || 0)),
+      new Big(0),
+    );
+
     // Map to the final structure
     return Object.entries(totals)
       .map(([name, total]) => {
         // Logic: If balance is 0, percentage is 0.
-        // Otherwise, (CategoryTotal / GlobalTotal) * 100
+        // Otherwise, (CategoryTotal / FilteredTotal) * 100
         const percentageValue = balance.gt(0)
           ? Number(total.div(balance).times(100).toFixed(2))
           : 0;

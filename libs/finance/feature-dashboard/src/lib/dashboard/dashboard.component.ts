@@ -11,8 +11,8 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
-import { SummaryCard } from '@zenith-finance/ui'
-import { AnalyticsBreakdown } from '../../../../ui/src/lib/analytics-breakdown';
+import { AnalyticsBreakdown, SummaryCardComponent } from '@zenith-finance/ui';
+
 
 @Component({
   standalone: true,
@@ -20,20 +20,16 @@ import { AnalyticsBreakdown } from '../../../../ui/src/lib/analytics-breakdown';
   imports: [
     CommonModule,
     FormsModule,
-    SummaryCard,
+    SummaryCardComponent,
     ReactiveFormsModule,
     AnalyticsBreakdown,
   ],
-  templateUrl: './dashboard.html',
-  styleUrl: './dashboard.css',
+  templateUrl: './dashboard.component.html',
+  styleUrl: './dashboard.component.css',
 })
-export class Dashboard {
+export class DashboardComponent {
   public finance = inject(FinanceService);
   private fb = inject(FormBuilder);
-
-  // Local state for the "Add" inputs
-  newAmount = signal('');
-  newCategory = signal('');
 
   periods: FilterPeriod[] = ['all', 'today', 'week', 'month'];
   currencies: CurrencyCode[] = ['EUR', 'USD', 'GBP'];

@@ -20,7 +20,11 @@
       "@zenith-finance/ui": ["./libs/shared/ui/src/index.ts"],
       "@zenith-finance/feature-dashboard": [
         "./libs/finance/feature-dashboard/src/index.ts"
-      ]
+      ],
+      "@zenith/shared/util-formatters": [
+        "./libs/shared/util-formatters/src/index.ts"
+      ],
+      "@zenith/shared/util-storage": ["./libs/shared/util-storage/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]
